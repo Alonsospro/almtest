@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validación de Inventarios</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <div class="containerHeader">
+            <h1>Sistema de Validación de Inventarios</h1>
+            <p>Conectado en tiempo real con Google Sheets</p>
+        </div>
+    </header>
+
+    <main class="container">
+        <!-- Panel de control de carga -->
+        <section class="status-panel">
+            <div id="connection-status" class="status loading">Conectando con Google Sheets...</div>
+            <button id="btn-sync" class="btn-primary">Sincronizar Manual</button>
+        </section>
+
+        <!-- Tabla de Inventario -->
+        <section class="table-container">
+            <table id="inventory-table">
+                <thead>
+                    <tr>
+                        <th>A</th>
+                        <th>B</th>
+                        <th>C</th>
+                        <th>D</th>
+                        <th>E</th>
+                        <th class="editable-header">F (Editable)</th>
+                        <th>G</th>
+                        <th class="editable-header">H (Editable)</th>
+                    </tr>
+                </thead>
+                <tbody id="inventory-body">
+                    <!-- Los datos se cargarán dinámicamente aquí -->
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <!-- Script de la aplicación -->
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,125 @@
+:root {
+    --primary-color: #2c3e50;
+    --accent-color: #27ae60;
+    --bg-color: #f5f7fa;
+    --text-color: #333;
+    --border-color: #ddd;
+    --editable-bg: #e8f8f5;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    line-height: 1.6;
+}
+
+.containerHeader {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 2rem 1rem;
+    text-align: center;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.status-panel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.status {
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+.status.loading { background-color: #f39c12; color: white; }
+.status.connected { background-color: #27ae60; color: white; }
+.status.error { background-color: #c0392b; color: white; }
+
+.btn-primary {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #34495e;
+}
+
+/* Tabla Responsiva */
+.table-container {
+    overflow-x: hidden;
+    background: white;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    border-radius: 8px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+
+th, td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+th {
+    background-color: #ecf0f1;
+    color: var(--primary-color);
+}
+
+th.editable-header {
+    background-color: #d1f2eb;
+}
+
+/* Control de inputs y celdas de lectura */
+td input {
+    width: 100%;
+    padding: 6px;
+    border: 1px solid #bdc3c7;
+    border-radius: 4px;
+    background-color: var(--editable-bg);
+    font-size: 1rem;
+}
+
+td input:focus {
+    outline: none;
+    border-color: var(--accent-color);
+    box-shadow: 0 0 5px rgba(39, 174, 96, 0.3);
+}
+
+.readonly-cell {
+    background-color: #f9f9f9;
+    color: #7f8c8d;
+}
+
+/* Responsive para pantallas pequeñas */
+@media (max-width: 768px) {
+    th, td {
+        padding: 8px 10px;
+        font-size: 0.9rem;
+    }
+}
