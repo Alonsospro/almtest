@@ -1,5 +1,5 @@
 // Configura aquí la URL que te dará Google Apps Script (Paso 2)
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9kZUrucdQ58yFmGigVbiWa0GRsUmxGu_IA_6ZxrEPVX1XGLnKyQeZQuuBMZJeHTRDJw/exec"; 
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzp4SqPol6BOf1iFhgyjCPM9me7g7RVQdbHHIi3FRsxYzAeViu62BElM8qBokttBTLU/exec"; 
 
 document.addEventListener("DOMContentLoaded", () => {
     fetchData();
