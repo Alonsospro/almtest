@@ -3,47 +3,495 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Validación de Inventarios</title>
-    <link rel="stylesheet" href="style.css">
+    <title>Nibol Inventarios - BDD ALMACEN</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    
+    <style>
+        :root {
+            --bg-primary: #0f172a;
+            --bg-surface: #1e293b;
+            --bg-card: #293548;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-hover: #0ea5e9;
+            --success: #34d399;
+            --warning: #fbbf24;
+            --border: #334155;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background-color: var(--bg-primary); color: var(--text-main); display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 1.5rem; }
+        .container { width: 100%; max-width: 550px; }
+        .header { text-align: center; margin-bottom: 2rem; }
+        .header h1 { font-size: 2.2rem; font-weight: 700; letter-spacing: -0.05em; color: var(--text-main); margin-bottom: 0.25rem; }
+        .header h1 span { color: var(--accent); }
+        .header p { color: var(--text-muted); font-size: 0.95rem; }
+
+        .card { background-color: var(--bg-surface); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); margin-bottom: 1.5rem; }
+        .form-group { margin-bottom: 1.25rem; position: relative; }
+        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; }
+
+        .search-container { display: flex; gap: 0.5rem; }
+        input[type="text"], input[type="number"], textarea, select { width: 100%; background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 1rem; color: var(--text-main); font-size: 1rem; transition: all 0.2s ease; outline: none; }
+        textarea { resize: vertical; min-height: 80px; }
+        input:focus, textarea:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15); }
+        input:disabled, textarea:disabled, select:disabled { opacity: 0.5; cursor: not-allowed; background-color: rgba(15, 23, 42, 0.3); border-color: rgba(51, 65, 85, 0.5); }
+        input:not(:disabled)[type="text"] { border-color: var(--warning); background-color: rgba(251, 191, 36, 0.03); }
+
+        .btn-scanner { background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; color: var(--text-main); padding: 0 1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease; }
+        .btn-scanner:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-scanner.active { background-color: #ef4444; border-color: #ef4444; color: white; }
+
+        #scanner-container { width: 100%; border-radius: 12px; overflow: hidden; margin-bottom: 1rem; border: 1px solid var(--border); background-color: #000; display: none; }
+        .status-badge-container { margin-top: 0.5rem; min-height: 24px; }
+        .badge { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; font-weight: 600; padding: 0.2rem 0.6rem; border-radius: 6px; }
+        .badge-info { background: rgba(56, 189, 248, 0.15); color: var(--accent); }
+        .badge-success { background: rgba(52, 211, 153, 0.15); color: var(--success); }
+        .badge-new { background: rgba(251, 191, 36, 0.15); color: var(--warning); border: 1px solid rgba(251, 191, 36, 0.3); }
+        .badge-dot { width: 6px; height: 6px; border-radius: 50%; background-color: currentColor; display: inline-block; }
+
+        .coincidencias-box { background-color: rgba(56, 189, 248, 0.08); border: 1px dashed var(--accent); border-radius: 10px; padding: 1rem; margin-bottom: 1.5rem; display: none; }
+        .coincidencias-box.show { display: block; }
+
+        .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.5rem; margin-top: 0.25rem; max-height: 280px; overflow-y: auto; padding-right: 0.25rem; }
+        .checkbox-card { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; background-color: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.8rem; cursor: pointer; font-size: 0.85rem; color: var(--text-main); }
+        .checkbox-card input[type="checkbox"] { accent-color: var(--accent); width: 16px; height: 16px; }
+        .pais-qty { width: 50px; padding: 0.35rem 0.4rem; margin-left: 0.35rem; border: 1px solid var(--border); border-radius: 6px; background-color: rgba(15, 23, 42, 0.6); color: var(--text-main); font-size: 0.8rem; text-align: center; }
+        .pais-qty:disabled { opacity: 0.45; cursor: not-allowed; }
+        .origen-resumen { margin-top: 0.6rem; padding: 0.7rem 0.8rem; border-radius: 8px; background: rgba(56, 189, 248, 0.08); border: 1px dashed var(--accent); font-size: 0.85rem; color: var(--text-main); }
+
+        .foto-container { background-color: var(--bg-card); border: 1px dashed var(--border); border-radius: 8px; padding: 1rem; text-align: center; }
+        .btn-foto-action { background-color: var(--accent); color: var(--bg-primary); border: none; border-radius: 6px; padding: 0.6rem 1rem; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; }
+        .btn-foto-secondary { background-color: transparent; border: 1px solid var(--border); color: var(--text-muted); margin-top: 0.5rem; }
+        #videoPhotoPreview, #imgCapturedPreview { width: 100%; max-height: 220px; object-fit: cover; border-radius: 6px; margin-top: 0.5rem; background-color: #000; }
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .estado-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+
+        .btn-submit { width: 100%; background-color: var(--accent); color: var(--bg-primary); border: none; border-radius: 8px; padding: 0.9rem; font-size: 1rem; font-weight: 700; cursor: pointer; transition: all 0.2s ease; margin-top: 0.5rem; }
+        .btn-submit:hover:not(:disabled) { background-color: var(--accent-hover); }
+        .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        @media (max-width: 480px) { .card { padding: 1.25rem; } .grid-2 { grid-template-columns: 1fr; gap: 0.25rem; } }
+    </style>
 </head>
 <body>
-    <header>
-        <div class="containerHeader">
-            <h1>Sistema de Validación de Inventarios</h1>
-            <p>Conectado en tiempo real con Google Sheets</p>
+
+    <div class="container">
+        <div class="header">
+            <h1><span>Nibol</span> Inventarios</h1>
+            <p>Control de BDD ALMACEN</p>
         </div>
-    </header>
 
-    <main class="container">
-        <!-- Panel de control de carga -->
-        <section class="status-panel">
-            <div id="connection-status" class="status loading">Conectando con Google Sheets...</div>
-            <button id="btn-sync" class="btn-primary">Sincronizar Manual</button>
-        </section>
+        <div id="scanner-container"></div>
 
-        <!-- Tabla de Inventario -->
-        <section class="table-container">
-            <table id="inventory-table">
-                <thead>
-                    <tr>
-                        <th>A</th>
-                        <th>B</th>
-                        <th>C</th>
-                        <th>D</th>
-                        <th>E</th>
-                        <th class="editable-header">F (Editable)</th>
-                        <th>G</th>
-                        <th class="editable-header">H (Editable)</th>
-                    </tr>
-                </thead>
-                <tbody id="inventory-body">
-                    <!-- Los datos se cargarán dinámicamente aquí -->
-                </tbody>
-            </table>
-        </section>
-    </main>
+        <div class="card">
+            <!-- Columna B -->
+            <div class="form-group">
+                <label for="codigo">Código del Ítem (Columna B)</label>
+                <div class="search-container">
+                    <input type="text" id="codigo" placeholder="Escanee o escriba el código..." autocomplete="off" autofocus>
+                    <button class="btn-scanner" id="btnToggleCamara" onclick="toggleCamara()" title="Escáner Barcode/QR">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+                    </button>
+                </div>
+                <div class="status-badge-container" id="statusBadge"></div>
+            </div>
 
-    <!-- Script de la aplicación -->
-    <script src="app.js"></script>
+            <div class="coincidencias-box" id="wrapperCoincidencias">
+                <label for="selectCoincidencias" style="color: var(--accent);">Variantes encontradas:</label>
+                <select id="selectCoincidencias" onchange="seleccionarVariante(this.value)"></select>
+            </div>
+
+            <div id="formCard" style="display: none;">
+                <!-- Columna C -->
+                <div class="form-group">
+                    <label id="lblProducto" for="producto">Nombre del Ítem (Columna C)</label>
+                    <input type="text" id="producto" placeholder="Descripción del artículo...">
+                </div>
+
+                <div class="grid-2">
+                    <!-- Columna E -->
+                    <div class="form-group">
+                        <label for="cantidadARevisar">Cantidad a revisar (Col. E)</label>
+                        <input type="number" id="cantidadARevisar" min="0" step="1" placeholder="0">
+                    </div>
+                    <!-- Columna D -->
+                    <div class="form-group">
+                        <label for="cantidad">Conteo Físico / Total (Col. D)</label>
+                        <input type="number" id="cantidad" min="0" step="1" placeholder="Solo número">
+                    </div>
+                </div>
+
+                <!-- ESTADO DE REPUESTO - Columna K -->
+                <div class="form-group">
+                    <label>Estado del Repuesto (Columna K)</label>
+                    <div class="estado-grid">
+                        <div style="grid-column: span 3;">
+                            <select id="estadoItem">
+                                <option value="BUEN ESTADO">BUEN ESTADO</option>
+                                <option value="OXIDADO">OXIDADO</option>
+                                <option value="DOBLADO">DOBLADO</option>
+                                <option value="ROTO">ROTO</option>
+                                <option value="ABOLLADO">ABOLLADO</option>
+                                <option value="DEFORMADO">DEFORMADO</option>
+                                <option value="MAL ESTADO">MAL ESTADO</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- COMENTARIO - Columna L -->
+                <div class="form-group">
+                    <label for="comentario">Comentarios (Columna L)</label>
+                    <textarea id="comentario" placeholder="Escriba aquí observaciones o comentarios adicionales..."></textarea>
+                </div>
+
+                <!-- Columna I: LISTA DE PAÍSES -->
+                <div class="form-group">
+                    <label>Fábrica de Origen (Columna I)</label>
+                    <div class="checkbox-grid" id="origenGrid">
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="AR" data-pais="AR"><span>AR</span><input type="number" class="pais-qty" data-pais="AR" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="AT" data-pais="AT"><span>AT</span><input type="number" class="pais-qty" data-pais="AT" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="BR" data-pais="BR"><span>BR</span><input type="number" class="pais-qty" data-pais="BR" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="BRA" data-pais="BRA"><span>BRA</span><input type="number" class="pais-qty" data-pais="BRA" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="CA" data-pais="CA"><span>CA</span><input type="number" class="pais-qty" data-pais="CA" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="CH" data-pais="CH"><span>CH</span><input type="number" class="pais-qty" data-pais="CH" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="CN" data-pais="CN"><span>CN</span><input type="number" class="pais-qty" data-pais="CN" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="CZ" data-pais="CZ"><span>CZ</span><input type="number" class="pais-qty" data-pais="CZ" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="DE" data-pais="DE"><span>DE</span><input type="number" class="pais-qty" data-pais="DE" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="DK" data-pais="DK"><span>DK</span><input type="number" class="pais-qty" data-pais="DK" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="ES" data-pais="ES"><span>ES</span><input type="number" class="pais-qty" data-pais="ES" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="FI" data-pais="FI"><span>FI</span><input type="number" class="pais-qty" data-pais="FI" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="FR" data-pais="FR"><span>FR</span><input type="number" class="pais-qty" data-pais="FR" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="GB" data-pais="GB"><span>GB</span><input type="number" class="pais-qty" data-pais="GB" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="HK" data-pais="HK"><span>HK</span><input type="number" class="pais-qty" data-pais="HK" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="HU" data-pais="HU"><span>HU</span><input type="number" class="pais-qty" data-pais="HU" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="ID" data-pais="ID"><span>ID</span><input type="number" class="pais-qty" data-pais="ID" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="IN" data-pais="IN"><span>IN</span><input type="number" class="pais-qty" data-pais="IN" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="IT" data-pais="IT"><span>IT</span><input type="number" class="pais-qty" data-pais="IT" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="JP" data-pais="JP"><span>JP</span><input type="number" class="pais-qty" data-pais="JP" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="KR" data-pais="KR"><span>KR</span><input type="number" class="pais-qty" data-pais="KR" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="MT" data-pais="MT"><span>MT</span><input type="number" class="pais-qty" data-pais="MT" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="MX" data-pais="MX"><span>MX</span><input type="number" class="pais-qty" data-pais="MX" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="MY" data-pais="MY"><span>MY</span><input type="number" class="pais-qty" data-pais="MY" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="NL" data-pais="NL"><span>NL</span><input type="number" class="pais-qty" data-pais="NL" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="PL" data-pais="PL"><span>PL</span><input type="number" class="pais-qty" data-pais="PL" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="PT" data-pais="PT"><span>PT</span><input type="number" class="pais-qty" data-pais="PT" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="RO" data-pais="RO"><span>RO</span><input type="number" class="pais-qty" data-pais="RO" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="SE" data-pais="SE"><span>SE</span><input type="number" class="pais-qty" data-pais="SE" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="SI" data-pais="SI"><span>SI</span><input type="number" class="pais-qty" data-pais="SI" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="SK" data-pais="SK"><span>SK</span><input type="number" class="pais-qty" data-pais="SK" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="TH" data-pais="TH"><span>TH</span><input type="number" class="pais-qty" data-pais="TH" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="TR" data-pais="TR"><span>TR</span><input type="number" class="pais-qty" data-pais="TR" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="TW" data-pais="TW"><span>TW</span><input type="number" class="pais-qty" data-pais="TW" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="UK" data-pais="UK"><span>UK</span><input type="number" class="pais-qty" data-pais="UK" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="US" data-pais="US"><span>US</span><input type="number" class="pais-qty" data-pais="US" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="VN" data-pais="VN"><span>VN</span><input type="number" class="pais-qty" data-pais="VN" min="0" step="1" placeholder="0" disabled></label>
+                        <label class="checkbox-card"><input type="checkbox" name="origen" value="ZA" data-pais="ZA"><span>ZA</span><input type="number" class="pais-qty" data-pais="ZA" min="0" step="1" placeholder="0" disabled></label>
+                    </div>
+                    <div class="origen-resumen" id="origenResumen">Selecciona uno o varios países para asignar cantidades.</div>
+                </div>
+
+                <!-- Columna J -->
+                <div class="form-group">
+                    <label>Respaldo Gráfico / Foto (Columna J)</label>
+                    <div class="foto-container">
+                        <button type="button" class="btn-foto-action" id="btnIniciarFoto" onclick="iniciarCamaraFoto()">
+                            Tomar Foto
+                        </button>
+                        
+                        <video id="videoPhotoPreview" autoplay playsinline style="display: none;"></video>
+                        <img id="imgCapturedPreview" style="display: none;" alt="Vista previa">
+                        
+                        <div id="fotoControls" style="display: none; margin-top: 0.5rem;">
+                            <button type="button" class="btn-foto-action" onclick="capturarFoto()">Capturar</button>
+                            <button type="button" class="btn-foto-action btn-foto-secondary" onclick="cancelarFoto()">Cancelar</button>
+                        </div>
+                        
+                        <div id="fotoRetakeControls" style="display: none; margin-top: 0.5rem;">
+                            <button type="button" class="btn-foto-action btn-foto-secondary" onclick="iniciarCamaraFoto()">Repetir Foto</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid-2">
+                    <!-- Columna G -->
+                    <div class="form-group">
+                        <label for="aprobados">Aprobados (Col. G)</label>
+                        <input type="number" id="aprobados" min="0" step="1" placeholder="0">
+                    </div>
+                    <!-- Columna H -->
+                    <div class="form-group">
+                        <label for="noAprobados">No Aprobados (Col. H)</label>
+                        <input type="number" id="noAprobados" min="0" step="1" placeholder="0">
+                    </div>
+                </div>
+
+                <button class="btn-submit" id="submitBtn" onclick="guardar()">
+                    <span id="submitText">Guardar Registro</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbz5wNBkIGsPXyIyVHjNSSUe0UzogGOXZ4keCKtSdAAaTLcQozYJwWXIvn0fuvWUbTQr/exec";
+
+        let timeoutBusqueda = null, filaActualizar = null, listaResultadosGlobal = [];
+        let html5QrcodeScanner = null;
+        let mediaStreamFoto = null, fotoBase64 = null;
+
+        document.getElementById('codigo').addEventListener('input', function(e) {
+            clearTimeout(timeoutBusqueda);
+            ocultarCampos();
+            const texto = e.target.value.trim();
+            if (texto.length < 2) { document.getElementById('statusBadge').innerHTML = ''; return; }
+            timeoutBusqueda = setTimeout(() => { buscarCodigo(texto); }, 450);
+        });
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('input[name="origen"]');
+            const qtyInputs = document.querySelectorAll('.pais-qty');
+
+            function actualizarOrigenes() {
+                let totalPorPaises = 0;
+                const seleccionados = [];
+
+                checkboxes.forEach(cb => {
+                    const qtyInput = document.querySelector(`.pais-qty[data-pais="${cb.value}"]`);
+                    if (cb.checked) {
+                        const valor = parseInt(qtyInput?.value || '0', 10);
+                        if (!isNaN(valor) && valor >= 0) {
+                            totalPorPaises += valor;
+                            seleccionados.push({ pais: cb.value, cantidad: valor });
+                        }
+                        qtyInput.disabled = false;
+                    } else {
+                        if (qtyInput) {
+                            qtyInput.value = '';
+                            qtyInput.disabled = true;
+                        }
+                    }
+                });
+
+                const conteoFisico = document.getElementById('cantidad');
+                if (totalPorPaises > 0) {
+                    conteoFisico.value = totalPorPaises;
+                }
+
+                const resumen = document.getElementById('origenResumen');
+                if (seleccionados.length === 0) {
+                    resumen.textContent = 'Selecciona uno o varios países para asignar cantidades.';
+                    return;
+                }
+
+                const detalle = seleccionados.map(item => `${item.pais}: ${item.cantidad}`).join(' | ');
+                resumen.textContent = `Orígenes: ${detalle}`;
+            }
+
+            checkboxes.forEach(cb => cb.addEventListener('change', actualizarOrigenes));
+            qtyInputs.forEach(input => input.addEventListener('input', actualizarOrigenes));
+        });
+
+        async function realizarPeticion(payload) {
+            const response = await fetch(WEB_APP_URL, {
+                method: "POST",
+                mode: "cors",
+                redirect: "follow",
+                headers: { "Content-Type": "text/plain;charset=utf-8" },
+                body: JSON.stringify(payload)
+            });
+            return await response.json();
+        }
+
+        async function buscarCodigo(codigo) {
+            document.getElementById('statusBadge').innerHTML = '<div class="badge badge-info"><span class="badge-dot"></span>Buscando en BDD...</div>';
+            try {
+                const res = await realizarPeticion({ accion: "buscar", codigo: codigo });
+                if (res.encontrado) {
+                    if (res.multiples) {
+                        listaResultadosGlobal = res.lista;
+                        mostrarVariantes(res.lista);
+                    } else {
+                        cargarDatosEnFormulario(res);
+                    }
+                } else {
+                    document.getElementById('statusBadge').innerHTML = '<div class="badge badge-new"><span class="badge-dot"></span>Nuevo Ítem (No registrado)</div>';
+                    filaActualizar = null;
+                    mostrarCamposNuevo();
+                }
+            } catch (e) {
+                document.getElementById('statusBadge').innerHTML = '<div class="badge badge-new" style="color:#ef4444;">Error de Conexión</div>';
+            }
+        }
+
+        function cargarDatosEnFormulario(item) {
+            filaActualizar = item.fila;
+            document.getElementById('statusBadge').innerHTML = '<div class="badge badge-success"><span class="badge-dot"></span>Ítem Encontrado</div>';
+            document.getElementById('producto').value = item.producto || '';
+            document.getElementById('cantidad').value = item.cantTotalContada || 0;
+            document.getElementById('cantidadARevisar').value = item.cantARevisar || 0;
+            document.getElementById('comentario').value = item.comentario || '';
+            document.getElementById('formCard').style.display = 'block';
+            document.getElementById('wrapperCoincidencias').classList.remove('show');
+        }
+
+        function mostrarVariantes(lista) {
+            const select = document.getElementById('selectCoincidencias');
+            select.innerHTML = '<option value="">-- Selecciona una variante --</option>';
+            lista.forEach((item, index) => {
+                select.innerHTML += `<option value="${index}">${item.codigoCompleto} - ${item.producto}</option>`;
+            });
+            document.getElementById('wrapperCoincidencias').classList.add('show');
+            document.getElementById('statusBadge').innerHTML = '<div class="badge badge-info"><span class="badge-dot"></span>Variantes disponibles</div>';
+        }
+
+        function seleccionarVariante(index) {
+            if (index === "") return;
+            const item = listaResultadosGlobal[index];
+            cargarDatosEnFormulario(item);
+        }
+
+        function mostrarCamposNuevo() {
+            document.getElementById('producto').value = '';
+            document.getElementById('cantidad').value = '';
+            document.getElementById('cantidadARevisar').value = '';
+            document.getElementById('comentario').value = '';
+            document.getElementById('formCard').style.display = 'block';
+            document.getElementById('wrapperCoincidencias').classList.remove('show');
+        }
+
+        function ocultarCampos() {
+            document.getElementById('formCard').style.display = 'none';
+            document.getElementById('wrapperCoincidencias').classList.remove('show');
+            resetFotoUI();
+        }
+
+        async function guardar() {
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            document.getElementById('submitText').innerText = "Guardando en Google Sheets...";
+
+            const paisesSel = [];
+            document.querySelectorAll('input[name="origen"]:checked').forEach(cb => {
+                const qty = document.querySelector(`.pais-qty[data-pais="${cb.value}"]`)?.value || '0';
+                paisesSel.push(`${cb.value}: ${qty}`);
+            });
+
+            const payload = {
+                accion: "registrar",
+                filaActualizar: filaActualizar,
+                codigo: document.getElementById('codigo').value.trim(),
+                producto: document.getElementById('producto').value.trim(),
+                cantTotalContada: Number(document.getElementById('cantidad').value || 0),
+                cantidadARevisar: Number(document.getElementById('cantidadARevisar').value || 0),
+                aprobados: Number(document.getElementById('aprobados').value || 0),
+                noAprobados: Number(document.getElementById('noAprobados').value || 0),
+                fabricaOrigen: paisesSel.join(' | '),
+                estadoRepuesto: document.getElementById('estadoItem').value,
+                comentarios: document.getElementById('comentario').value.trim(),
+                foto: fotoBase64
+            };
+
+            try {
+                const res = await realizarPeticion(payload);
+                if (res.resultado === "Éxito") {
+                    alert("¡Registro guardado exitosamente!");
+                    location.reload();
+                } else {
+                    alert("Error: " + JSON.stringify(res));
+                }
+            } catch (e) {
+                alert("Ocurrió un error al guardar.");
+            } finally {
+                btn.disabled = false;
+                document.getElementById('submitText').innerText = "Guardar Registro";
+            }
+        }
+
+        function toggleCamara() {
+            const contenedor = document.getElementById('scanner-container');
+            const boton = document.getElementById('btnToggleCamara');
+
+            if (html5QrcodeScanner && html5QrcodeScanner.isScanning) { apagarCamara(); return; }
+
+            contenedor.style.display = 'block';
+            boton.classList.add('active');
+            html5QrcodeScanner = new Html5Qrcode("scanner-container");
+
+            html5QrcodeScanner.start(
+                { facingMode: "environment" }, 
+                { fps: 20, qrbox: (w, h) => ({ width: w * 0.85, height: h * 0.45 }) },
+                (decodedText) => {
+                    document.getElementById('codigo').value = decodedText;
+                    apagarCamara();
+                    ocultarCampos();
+                    buscarCodigo(decodedText);
+                },
+                () => {}
+            ).catch(() => apagarCamara());
+        }
+
+        function apagarCamara() {
+            const contenedor = document.getElementById('scanner-container');
+            document.getElementById('btnToggleCamara').classList.remove('active');
+            if (html5QrcodeScanner) { html5QrcodeScanner.stop().then(() => contenedor.style.display = 'none').catch(() => contenedor.style.display = 'none'); } 
+            else { contenedor.style.display = 'none'; }
+        }
+
+        async function iniciarCamaraFoto() {
+            try {
+                mediaStreamFoto = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" }, audio: false });
+                const video = document.getElementById('videoPhotoPreview');
+                video.srcObject = mediaStreamFoto;
+                video.style.display = 'block';
+                document.getElementById('btnIniciarFoto').style.display = 'none';
+                document.getElementById('fotoControls').style.display = 'block';
+                document.getElementById('imgCapturedPreview').style.display = 'none';
+                document.getElementById('fotoRetakeControls').style.display = 'none';
+            } catch (err) { alert("Sin acceso a la cámara."); }
+        }
+
+        function capturarFoto() {
+            const video = document.getElementById('videoPhotoPreview');
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+            fotoBase64 = canvas.toDataURL('image/jpeg', 0.7);
+            
+            document.getElementById('imgCapturedPreview').src = fotoBase64;
+            document.getElementById('imgCapturedPreview').style.display = 'block';
+            video.style.display = 'none';
+            document.getElementById('fotoControls').style.display = 'none';
+            document.getElementById('fotoRetakeControls').style.display = 'block';
+            detenerStreamFoto();
+        }
+
+        function cancelarFoto() {
+            detenerStreamFoto();
+            document.getElementById('videoPhotoPreview').style.display = 'none';
+            document.getElementById('btnIniciarFoto').style.display = 'inline-flex';
+            document.getElementById('fotoControls').style.display = 'none';
+        }
+
+        function detenerStreamFoto() {
+            if (mediaStreamFoto) { mediaStreamFoto.getTracks().forEach(t => t.stop()); mediaStreamFoto = null; }
+        }
+
+        function resetFotoUI() {
+            detenerStreamFoto();
+            fotoBase64 = null;
+            document.getElementById('videoPhotoPreview').style.display = 'none';
+            document.getElementById('imgCapturedPreview').style.display = 'none';
+            document.getElementById('btnIniciarFoto').style.display = 'inline-flex';
+            document.getElementById('fotoControls').style.display = 'none';
+            document.getElementById('fotoRetakeControls').style.display = 'none';
+        }
+    </script>
 </body>
 </html>
